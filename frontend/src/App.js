@@ -15,7 +15,8 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/check-links', {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+      const response = await axios.post(`${backendUrl}/api/check-links`, {
         url,
       });
       setResults(response.data);
@@ -74,6 +75,10 @@ function App() {
                   <span className="value">{results.totalPages}</span>
                 </div>
                 <div className="stat">
+                  <span className="label">Total Links:</span>
+                  <span className="value">{results.totalLinks ?? 0}</span>
+                </div>
+                <div className="stat">
                   <span className="label">Total Broken Links:</span>
                   <span className={`value ${results.totalBrokenLinks > 0 ? 'error-text' : 'success-text'}`}>
                     {results.totalBrokenLinks}
@@ -94,7 +99,10 @@ function App() {
                   <div key={idx} className="page-card">
                     <div className="page-header">
                       <h3>{page.url}</h3>
-                      <span className="broken-count">{page.brokenLinkCount} broken</span>
+                      <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                        <span className="link-count">{page.totalLinks} links</span>
+                        <span className="broken-count">{page.brokenLinkCount} broken</span>
+                      </div>
                     </div>
                     <div className="links-list">
                       {page.brokenLinks.map((link, linkIdx) => (
@@ -106,6 +114,17 @@ function App() {
                           </div>
                         </div>
                       ))}
+                      {page.skippedLinks && page.skippedLinks.length > 0 && (
+                        <div style={{marginTop: 12}}>
+                          <h4>Other links</h4>
+                          {page.skippedLinks.map((s, i) => (
+                            <div key={i} className="link-item">
+                              <div className="link-url">{s.url || '(empty)'}</div>
+                              <div className="link-status">Type: {s.reason}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
